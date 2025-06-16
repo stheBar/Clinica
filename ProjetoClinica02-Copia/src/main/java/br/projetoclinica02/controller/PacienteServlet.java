@@ -16,8 +16,7 @@ public class PacienteServlet extends HttpServlet {
     private final ConsultaService consultaService = new ConsultaService();
 
     @Override
-    protected void doGet(HttpServletRequest req,
-                         HttpServletResponse resp)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
@@ -28,17 +27,24 @@ public class PacienteServlet extends HttpServlet {
             return;
         }
 
+        String action = req.getParameter("action");
+
         try {
-            List<Consulta> consultas = consultaService.listarPorPaciente(paciente.getId());
-            req.setAttribute("consultas", consultas);
+            if ("prontuario".equals(action)) {
+                //exibe todas as consultas do paciente com todos os médicos
+                List<Consulta> consultas = consultaService.listarPorPaciente(paciente.getId());
+                req.setAttribute("consultas", consultas);
+                req.getRequestDispatcher("/WEB-INF/pages/paciente/prontuario_paciente.jsp").forward(req, resp);
 
-            System.out.println("Paciente ID: " + paciente.getId() + " | Consultas carregadas: " + consultas.size());
+            } else {
+                //Tela padrão: consultas agendadas
+                List<Consulta> consultas = consultaService.listarPorPaciente(paciente.getId());
+                req.setAttribute("consultas", consultas);
+                req.getRequestDispatcher("/WEB-INF/pages/paciente/paciente_home.jsp").forward(req, resp);
+            }
 
-
-
-            req.getRequestDispatcher("/WEB-INF/pages/paciente/paciente_home.jsp").forward(req, resp);
         } catch (Exception e) {
-            throw new ServletException("Erro ao buscar consultas do paciente", e);
+            throw new ServletException("Erro ao buscar dados do paciente", e);
         }
     }
 }

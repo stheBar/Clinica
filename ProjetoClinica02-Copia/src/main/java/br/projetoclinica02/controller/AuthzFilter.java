@@ -12,7 +12,7 @@ public class AuthzFilter implements Filter {
 
     //caminhos EXATOS liberados (comparação com equals)
     private static final Set<String> PUBLIC_EXACT = Set.of(
-            "/",                // se quiser que somente a raiz seja pública
+            "/",
             "/index.jsp",
             "/login",
             "/usuario"

@@ -127,8 +127,11 @@
 
 <header>
     <h1>Clínica</h1>
-
+    <nav>
+        <a href="${pageContext.request.contextPath}/medico?action=meusPacientes">Meus Pacientes</a>
+    </nav>
 </header>
+
 
 <div class="container">
     <div class="card">
@@ -145,6 +148,7 @@
             </c:if>
 
             <c:if test="${not empty consultas}">
+
                 <h4>Consultas Marcadas</h4>
                 <table class="table">
                     <thead>

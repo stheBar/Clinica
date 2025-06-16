@@ -94,7 +94,10 @@
 
 <header>
     <h1>Clínica</h1>
-
+    <nav>
+        <a href="${pageContext.request.contextPath}/paciente?action=prontuario"
+           style="color: white; text-decoration: none; font-weight: bold;">Meu Prontuário</a>
+    </nav>
 </header>
 
 <div class="container">

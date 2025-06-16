@@ -2,17 +2,20 @@ package br.projetoclinica02.controller;
 
 import br.projetoclinica02.model.*;
 import br.projetoclinica02.service.ConsultaService;
+import br.projetoclinica02.service.PacienteService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/medico")
 public class MedicoServlet extends HttpServlet {
 
     private final ConsultaService consultaService = new ConsultaService();
+    private final PacienteService pacienteService = new PacienteService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -38,6 +41,42 @@ public class MedicoServlet extends HttpServlet {
                 } else {
                     resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Consulta não autorizada.");
                 }
+
+            } else if ("meusPacientes".equals(action)) {
+                List<Paciente> pacientes = consultaService.listarPacientesAtendidosPorMedico(medico.getId());
+                req.setAttribute("pacientes", pacientes);
+                req.getRequestDispatcher("/WEB-INF/pages/medico/meus_pacientes.jsp").forward(req, resp);
+
+            } else if ("prontuario".equals(action)) {
+                int pacienteId = Integer.parseInt(req.getParameter("id"));
+                Paciente paciente = pacienteService.buscarPorId(pacienteId);
+                List<Consulta> consultas = consultaService.listarPorPaciente(pacienteId);
+
+                //segurança: só acessa se tiver consulta com esse médico
+                boolean possuiConsultaComMedico = false;
+                for (Consulta c : consultas) {
+                    if (c.getMedico().getId() == medico.getId()) {
+                        possuiConsultaComMedico = true;
+                        break;
+                    }
+                }
+
+                if (!possuiConsultaComMedico) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Acesso não autorizado ao prontuário.");
+                    return;
+                }
+
+                //filtrar somente consultas com este medico
+                List<Consulta> historico = new ArrayList<>();
+                for (Consulta c : consultas) {
+                    if (c.getMedico().getId() == medico.getId()) {
+                        historico.add(c);
+                    }
+                }
+
+                req.setAttribute("paciente", paciente);
+                req.setAttribute("consultas", historico);
+                req.getRequestDispatcher("/WEB-INF/pages/medico/prontuario.jsp").forward(req, resp);
 
             } else {
                 // Padrão: listar consultas

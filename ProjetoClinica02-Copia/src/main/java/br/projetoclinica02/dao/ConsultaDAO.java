@@ -200,4 +200,25 @@ public class ConsultaDAO {
     }
 
 
+    public List<Paciente> findPacientesAtendidosPorMedico(int medicoId) throws Exception {
+        List<Paciente> pacientes = new ArrayList<>();
+        String sql = "SELECT DISTINCT paciente_id FROM consulta WHERE medico_id = ?";
+        try (Connection conn = ConexaoBD.conectarBancoPostgres();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, medicoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int pacienteId = rs.getInt("paciente_id");
+                    Paciente p = pacienteDAO.findById(pacienteId);
+                    if (p != null) {
+                        pacientes.add(p);
+                    }
+                }
+            }
+        }
+        return pacientes;
+    }
+
+
 }

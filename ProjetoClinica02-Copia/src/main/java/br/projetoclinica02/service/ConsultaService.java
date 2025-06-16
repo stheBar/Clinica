@@ -2,6 +2,7 @@ package br.projetoclinica02.service;
 
 import br.projetoclinica02.dao.ConsultaDAO;
 import br.projetoclinica02.model.Consulta;
+import br.projetoclinica02.model.Paciente;
 
 import java.util.List;
 import java.time.LocalDateTime;
@@ -49,6 +50,10 @@ public class ConsultaService {
         return dao.existeConflitoHorarioPaciente(pacienteId, dataHorario, ignorarId);
     }
 
+    // ConsultaService.java
+    public List<Paciente> listarPacientesAtendidosPorMedico(int medicoId) throws Exception {
+        return dao.findPacientesAtendidosPorMedico(medicoId);
+    }
 
 
 }
