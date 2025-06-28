@@ -11,9 +11,9 @@ public class ConexaoBD {
 
         Class.forName("org.postgresql.Driver");
         System.out.println("Driver carregado");
-        String url = "jdbc:postgresql://localhost:5432/Clinica";
+        String url = "jdbc:postgresql://postgres:5432/Clinica";
         String user = "postgres";
-        String senha = "1234";
+        String senha = "12345";
         Connection conn =
                 DriverManager.getConnection(url, user, senha);
         return conn;

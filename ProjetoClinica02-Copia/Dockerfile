@@ -1,25 +1,42 @@
-# Stage 1: Build the WAR using Maven
-FROM maven:3.8.6-jdk-11-slim AS builder
+# ─────────── Stage 1: build com Java 19 + Maven ───────────
+FROM eclipse-temurin:19-jdk AS build
+
+# instala o Maven
+RUN apt-get update \
+ && apt-get install -y maven \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Copy POM and patch compiler plugin to use Java 11
+# cache das dependências
+#antes de copiar o pom precisa clonar o projeto.
 COPY pom.xml .
-RUN sed -i 's/<source>14<\/source>/<source>11<\/source>/' pom.xml \
-    && sed -i 's/<target>14<\/target>/<target>11<\/target>/' pom.xml
+RUN mvn dependency:go-offline -B
 
-# Copy source and build
+# compila e gera o WAR
 COPY src ./src
-RUN mvn clean package -DskipTests -Dproject.build.sourceEncoding=UTF-8
+RUN mvn clean package -DskipTests -B
 
-# Stage 2: Deploy WAR on Tomcat
-FROM tomcat:9-jdk11-openjdk-slim
 
-# Maintainer and encoding
-LABEL maintainer="Tiago Tonon <tiago@example.com>"
-ENV JAVA_OPTS="-Dfile.encoding=UTF-8"
+# ─────────── Stage 2: WildFly sobre Java 19 ───────────
+FROM eclipse-temurin:19-jdk AS runtime
 
-# Deploy WAR as ROOT
-COPY --from=builder /app/target/clinica.war /usr/local/tomcat/webapps/ROOT.war
+ENV WILDFLY_VERSION=36.0.0.Final \
+    WILDFLY_HOME=/opt/wildfly
+
+# baixa e instala o WildFly
+RUN apt-get update \
+ && apt-get install -y curl tar gzip --no-install-recommends \
+ && rm -rf /var/lib/apt/lists/* \
+ && curl -SL https://github.com/wildfly/wildfly/releases/download/${WILDFLY_VERSION}/wildfly-${WILDFLY_VERSION}.tar.gz \
+      | tar -xz -C /opt \
+ && mv /opt/wildfly-${WILDFLY_VERSION} ${WILDFLY_HOME} \
+ && chmod +x ${WILDFLY_HOME}/bin/*.sh
+
+# deploy do WAR gerado
+COPY --from=build /app/target/clinica.war \
+     ${WILDFLY_HOME}/standalone/deployments/
 
 EXPOSE 8080
-CMD ["catalina.sh", "run"]
+
+CMD ["bash","-lc","${WILDFLY_HOME}/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0"]

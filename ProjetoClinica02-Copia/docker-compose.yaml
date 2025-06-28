@@ -1,38 +1,38 @@
-version: '3.9'
+version: "3.8"
 
 services:
   postgres:
-    image: postgres:14-alpine
-    container_name: clinica-db
-    restart: unless-stopped
+    image: postgres:15
+    ports:
+      - "5434:5432"
     environment:
       POSTGRES_DB: Clinica
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: '1234'
+      POSTGRES_PASSWORD: "12345"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-    ports:
-      - '5432:5432'
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: clinica-app
-    restart: unless-stopped
+  wildfly:
+    build: .
+    container_name: clinica_app
+    ports:
+      - "8080:8080"
     depends_on:
       - postgres
-    ports:
-      - '8080:8080'
     environment:
-      # mantém encoding
-      - JAVA_OPTS=-Dfile.encoding=UTF-8
-      # (opcional) variáveis para seu código ler, caso você adapte ConexaoBD
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=Clinica
-      - DB_USER=postgres
-      - DB_PASSWORD=1234
+      DB_HOST: postgres
+      DB_PORT: 5434
+      DB_NAME: Clinica
+      DB_USER: postgres
+      DB_PASSWORD: "12345"
+    networks:
+      - app-network
 
 volumes:
-  postgres-data:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
